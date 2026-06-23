@@ -4,135 +4,322 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LLM Pozisyon Kodlama Görselleştiricisi</title>
-    <meta name="theme-color" content="#4f46e5">
-    <!-- Sadece tasarım için Tailwind CSS alıyoruz, başka hiçbir kütüphane veya React YOK -->
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --bg: #eef2ff;
+            --panel: rgba(255, 255, 255, 0.92);
+            --panel-strong: #ffffff;
+            --text: #1f2937;
+            --muted: #64748b;
+            --border: #dbe2ee;
+            --shadow: 0 24px 70px rgba(15, 23, 42, 0.16);
+            --primary: #4f46e5;
+            --primary-dark: #3730a3;
+            --accent: #06b6d4;
+            --green: #10b981;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --grid: #e2e8f0;
+        }
+
+        * { box-sizing: border-box; }
+        html, body { margin: 0; min-height: 100%; }
         body {
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
             background:
-                radial-gradient(circle at top, rgba(79, 70, 229, 0.14), transparent 32%),
-                radial-gradient(circle at 80% 10%, rgba(14, 165, 233, 0.12), transparent 24%),
-                linear-gradient(180deg, #f8fafc 0%, #eef2ff 100%);
+                radial-gradient(circle at top, rgba(79, 70, 229, 0.18), transparent 30%),
+                radial-gradient(circle at 90% 10%, rgba(6, 182, 212, 0.15), transparent 24%),
+                linear-gradient(180deg, #f8fafc 0%, var(--bg) 100%);
+            padding: 24px;
         }
 
-        #posSlider::-webkit-slider-thumb {
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 9999px;
-            background: #4f46e5;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.18);
+        .page {
+            width: min(1180px, 100%);
+            margin: 0 auto;
+            background: var(--panel);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: 28px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
         }
 
-        #posSlider::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
+        .hero {
+            padding: 28px 28px 30px;
+            color: white;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 48%, #0284c7 100%);
+        }
+
+        .eyebrow {
+            margin: 0 0 8px;
+            font-size: 12px;
+            letter-spacing: 0.34em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.72);
+        }
+
+        .hero h1 {
+            margin: 0;
+            font-size: clamp(1.7rem, 3vw, 2.7rem);
+            line-height: 1.1;
+        }
+
+        .hero p {
+            margin: 10px 0 0;
+            max-width: 760px;
+            color: rgba(255,255,255,0.88);
+            font-size: 1rem;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 20px;
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border);
+            background: rgba(248, 250, 252, 0.9);
+        }
+
+        .control-card label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.92rem;
+            font-weight: 700;
+            color: #334155;
+        }
+
+        .segmented {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: #dbe4f0;
+            padding: 4px;
+            border-radius: 16px;
+            gap: 4px;
+        }
+
+        .segmented button {
             border: 0;
-            border-radius: 9999px;
-            background: #4f46e5;
-            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.18);
+            border-radius: 12px;
+            padding: 13px 14px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+            color: #475569;
+            background: transparent;
+        }
+
+        .segmented button:hover { transform: translateY(-1px); }
+        .segmented .active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 10px 20px rgba(79, 70, 229, 0.12);
+        }
+
+        .slider-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .slider-value {
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            appearance: none;
+            background: linear-gradient(90deg, #cbd5e1, #94a3b8);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid #e0e7ff;
+            box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.15);
+        }
+
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            border: 3px solid #e0e7ff;
+            box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.15);
+        }
+
+        .range-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 0.78rem;
+            color: var(--muted);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: minmax(320px, 1.05fr) minmax(320px, 0.95fr);
+            gap: 0;
+        }
+
+        .svg-pane {
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--panel-strong);
+            border-right: 1px solid #eef2f7;
+        }
+
+        .analysis-pane {
+            padding: 24px;
+            background: rgba(248, 250, 252, 0.72);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            font-size: 0.95rem;
+        }
+
+        .analysis-pane h3 {
+            margin: 0 0 6px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #d9e2ef;
+            font-size: 1.15rem;
+        }
+
+        .card {
+            border-radius: 16px;
+            padding: 14px;
+            border: 1px solid;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .card strong { display: block; margin-bottom: 6px; }
+        .card small { color: inherit; opacity: 0.78; }
+        .blue { background: #eff6ff; color: #1e3a8a; border-color: #bfdbfe; }
+        .emerald { background: #ecfdf5; color: #065f46; border-color: #a7f3d0; }
+        .amber { background: #fffbeb; color: #92400e; border-color: #fde68a; }
+        .red { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+
+        .highlight-good { background: rgba(16, 185, 129, 0.18); padding: 0 6px; border-radius: 6px; font-weight: 800; }
+        .highlight-bad { background: rgba(245, 158, 11, 0.22); padding: 0 6px; border-radius: 6px; font-weight: 800; }
+
+        .note {
+            margin-top: 4px;
+            padding-top: 10px;
+            border-top: 1px solid rgba(239, 68, 68, 0.18);
+            font-size: 0.86rem;
+            line-height: 1.45;
+        }
+
+        .svg-frame {
+            width: min(100%, 420px);
+            aspect-ratio: 1 / 1;
+            border: 1px solid #d8e2ee;
+            border-radius: 20px;
+            background: #f8fafc;
+            box-shadow: inset 0 2px 16px rgba(15, 23, 42, 0.05);
+        }
+
+        @media (max-width: 980px) {
+            .controls, .content { grid-template-columns: 1fr; }
+            .svg-pane { border-right: 0; border-bottom: 1px solid #eef2f7; }
+        }
+
+        @media (max-width: 640px) {
+            body { padding: 12px; }
+            .hero, .controls, .svg-pane, .analysis-pane { padding: 18px; }
+            .segmented button { font-size: 0.9rem; padding: 11px 10px; }
         }
     </style>
 </head>
-<body class="min-h-screen font-sans text-slate-800 p-4 md:p-6 flex justify-center items-center">
-    
-    <div class="w-full max-w-5xl bg-white/90 backdrop-blur rounded-3xl shadow-2xl overflow-hidden border border-white/60 h-max">
-        <!-- Üst Bilgi -->
-        <div class="bg-gradient-to-r from-indigo-600 via-violet-600 to-sky-600 text-white p-6 md:p-8">
-            <div class="flex flex-col gap-2">
-                <p class="text-xs uppercase tracking-[0.35em] text-white/75">GitHub Pages hazır</p>
-                <h1 class="text-2xl md:text-3xl font-bold">LLM Pozisyon Kodlama Görselleştiricisi</h1>
-                <p class="text-white/85 max-w-2xl text-sm md:text-base">Geleneksel pozisyon ekleme ile RoPE yaklaşımını aynı sahnede karşılaştıran tek dosyalık HTML demo.</p>
-            </div>
-        </div>
+<body>
+    <main class="page">
+        <section class="hero">
+            <p class="eyebrow">GitHub Pages hazır</p>
+            <h1>LLM Pozisyon Kodlama Görselleştiricisi</h1>
+            <p>Geleneksel pozisyon ekleme ile RoPE yaklaşımını aynı sahnede karşılaştıran, dış CSS bağımlılığı olmayan tek dosyalık bir demo.</p>
+        </section>
 
-        <!-- Kontroller -->
-        <div class="p-6 border-b border-slate-200 bg-slate-50/80 flex flex-col md:flex-row gap-6 justify-between items-center">
-            <div class="flex-1 w-full">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">Kodlama Yöntemi</label>
-                <div class="flex bg-slate-200 rounded-lg p-1">
-                    <button id="btn-abs" onclick="setMethod('absolute')" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors bg-white shadow text-indigo-700">Geleneksel PoE (Toplama)</button>
-                    <button id="btn-rope" onclick="setMethod('rope')" class="flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-800">RoPE (Döndürme)</button>
+        <section class="controls">
+            <div class="control-card">
+                <label>Kodlama Yöntemi</label>
+                <div class="segmented" role="tablist" aria-label="Kodlama yöntemi">
+                    <button id="btn-abs" class="active" onclick="setMethod('absolute')">Geleneksel PoE (Toplama)</button>
+                    <button id="btn-rope" onclick="setMethod('rope')">RoPE (Döndürme)</button>
                 </div>
             </div>
-            <div class="flex-1 w-full">
-                <label class="block text-sm font-semibold text-slate-700 mb-2">
-                    Kelime Pozisyonu (m): <span id="pos-label" class="text-indigo-600 text-lg">1</span>
-                </label>
-                <input type="range" id="posSlider" min="0" max="8" step="1" value="1" oninput="setPos(this.value)" class="w-full h-2 bg-slate-300 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
-                <div class="flex justify-between text-xs text-slate-500 mt-1">
-                    <span>0</span><span>8</span>
-                </div>
-            </div>
-        </div>
 
-        <div class="flex flex-col xl:flex-row">
-            <!-- SVG Çizim Alanı -->
-            <div class="p-6 flex justify-center items-center bg-white border-b xl:border-b-0 xl:border-r border-slate-100">
-                <svg id="main-svg" width="400" height="400" class="border border-slate-200 rounded-2xl bg-slate-50 shadow-inner max-w-full h-auto">
+            <div class="control-card">
+                <label class="slider-head">Kelime Pozisyonu (m): <span id="pos-label" class="slider-value">1</span></label>
+                <input type="range" id="posSlider" min="0" max="8" step="1" value="1" oninput="setPos(this.value)">
+                <div class="range-labels"><span>0</span><span>8</span></div>
+            </div>
+        </section>
+
+        <section class="content">
+            <div class="svg-pane">
+                <svg id="main-svg" viewBox="0 0 400 400" class="svg-frame" aria-label="Vektör görselleştirme">
                     <defs>
                         <marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6" />
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#3b82f6"></path>
                         </marker>
                         <marker id="arrow-red" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444" />
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#ef4444"></path>
                         </marker>
                         <marker id="arrow-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981" />
+                            <path d="M 0 0 L 10 5 L 0 10 z" fill="#10b981"></path>
                         </marker>
                     </defs>
                     <g id="svg-content"></g>
                 </svg>
             </div>
 
-            <!-- Analiz ve Matematik Paneli -->
-            <div id="analysis-content" class="p-6 flex-1 bg-slate-50/70 flex flex-col gap-4 text-sm">
-                <!-- Javascript ile Doldurulacak -->
-            </div>
-        </div>
-    </div>
+            <aside id="analysis-content" class="analysis-pane"></aside>
+        </section>
+    </main>
 
-    <!-- SAF JAVASCRIPT KODLARI (Sıfır Hata Garantisi) -->
     <script>
         let currentMethod = 'absolute';
         let currentPos = 1;
 
-        // --- MATEMATİKSEL SABİTLER ---
         const baseVector = { x: 1, y: 1 };
         const baseNorm = Math.sqrt(2);
         const baseAngle = Math.atan2(1, 1);
-
         const center = 200;
         const scale = 40;
         const mapX = (x) => center + x * scale;
         const mapY = (y) => center - y * scale;
 
-        // --- BUTON VE KAYDIRICI KONTROLLERİ ---
         function setMethod(m) {
             currentMethod = m;
-            document.getElementById('btn-abs').className = m === 'absolute' 
-                ? 'flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors bg-white shadow text-indigo-700' 
-                : 'flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-800';
-            
-            document.getElementById('btn-rope').className = m === 'rope' 
-                ? 'flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors bg-white shadow text-indigo-700' 
-                : 'flex-1 py-2 px-4 text-sm font-medium rounded-md transition-colors text-slate-600 hover:text-slate-800';
+            document.getElementById('btn-abs').className = m === 'absolute' ? 'active' : '';
+            document.getElementById('btn-rope').className = m === 'rope' ? 'active' : '';
             render();
         }
 
         function setPos(val) {
-            currentPos = parseInt(val);
+            currentPos = parseInt(val, 10);
             document.getElementById('pos-label').innerText = currentPos;
             render();
         }
 
-        // --- EKRAN ÇİZİM FONKSİYONU ---
         function render() {
             let finalVector = { x: 0, y: 0 };
             let posVector = { x: 0, y: 0 };
             let rotationDeg = 0;
 
-            // Vektör Hesaplamaları
             if (currentMethod === 'absolute') {
                 posVector = { x: 0.3 * currentPos, y: 0.2 * currentPos };
                 finalVector = { x: baseVector.x + posVector.x, y: baseVector.y + posVector.y };
@@ -145,81 +332,75 @@
                 };
             }
 
-            const finalNorm = Math.sqrt(finalVector.x**2 + finalVector.y**2);
+            const finalNorm = Math.sqrt(finalVector.x ** 2 + finalVector.y ** 2);
 
-            // 1) SVG (Grafik) Güncelleme
             let svgHTML = '';
-            for(let i=0; i<=10; i++) {
-                let pos = i * scale;
-                svgHTML += `<line x1="${pos}" y1="0" x2="${pos}" y2="400" stroke="#e2e8f0" stroke-width="1" />`;
-                svgHTML += `<line x1="0" y1="${pos}" x2="400" y2="${pos}" stroke="#e2e8f0" stroke-width="1" />`;
+            for (let i = 0; i <= 10; i++) {
+                const pos = i * scale;
+                svgHTML += `<line x1="${pos}" y1="0" x2="${pos}" y2="400" stroke="#e2e8f0" stroke-width="1"></line>`;
+                svgHTML += `<line x1="0" y1="${pos}" x2="400" y2="${pos}" stroke="#e2e8f0" stroke-width="1"></line>`;
             }
-            svgHTML += `<line x1="0" y1="200" x2="400" y2="200" stroke="#94a3b8" stroke-width="2" />`;
-            svgHTML += `<line x1="200" y1="0" x2="200" y2="400" stroke="#94a3b8" stroke-width="2" />`;
+            svgHTML += `<line x1="0" y1="200" x2="400" y2="200" stroke="#94a3b8" stroke-width="2"></line>`;
+            svgHTML += `<line x1="200" y1="0" x2="200" y2="400" stroke="#94a3b8" stroke-width="2"></line>`;
 
-            svgHTML += `<line x1="${mapX(0)}" y1="${mapY(0)}" x2="${mapX(baseVector.x)}" y2="${mapY(baseVector.y)}" stroke="#3b82f6" stroke-width="3" stroke-dasharray="4 2" marker-end="url(#arrow-blue)" />`;
-            svgHTML += `<text x="${mapX(baseVector.x)+10}" y="${mapY(baseVector.y)+20}" fill="#3b82f6" font-size="12" font-weight="bold">Orijinal (E)</text>`;
+            svgHTML += `<line x1="${mapX(0)}" y1="${mapY(0)}" x2="${mapX(baseVector.x)}" y2="${mapY(baseVector.y)}" stroke="#3b82f6" stroke-width="3" stroke-dasharray="4 2" marker-end="url(#arrow-blue)"></line>`;
+            svgHTML += `<text x="${mapX(baseVector.x) + 10}" y="${mapY(baseVector.y) + 20}" fill="#3b82f6" font-size="12" font-weight="700">Orijinal (E)</text>`;
 
             if (currentPos > 0) {
                 if (currentMethod === 'absolute') {
-                    svgHTML += `<line x1="${mapX(baseVector.x)}" y1="${mapY(baseVector.y)}" x2="${mapX(finalVector.x)}" y2="${mapY(finalVector.y)}" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)" />`;
+                    svgHTML += `<line x1="${mapX(baseVector.x)}" y1="${mapY(baseVector.y)}" x2="${mapX(finalVector.x)}" y2="${mapY(finalVector.y)}" stroke="#10b981" stroke-width="2" marker-end="url(#arrow-green)"></line>`;
                 } else {
-                    svgHTML += `<path d="M ${mapX(baseVector.x)} ${mapY(baseVector.y)} A ${baseNorm*scale} ${baseNorm*scale} 0 0 0 ${mapX(finalVector.x)} ${mapY(finalVector.y)}" fill="transparent" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 3" />`;
+                    svgHTML += `<path d="M ${mapX(baseVector.x)} ${mapY(baseVector.y)} A ${baseNorm * scale} ${baseNorm * scale} 0 0 0 ${mapX(finalVector.x)} ${mapY(finalVector.y)}" fill="transparent" stroke="#f59e0b" stroke-width="2" stroke-dasharray="3 3"></path>`;
                 }
-                svgHTML += `<line x1="${mapX(0)}" y1="${mapY(0)}" x2="${mapX(finalVector.x)}" y2="${mapY(finalVector.y)}" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)" />`;
-                svgHTML += `<text x="${mapX(finalVector.x)+10}" y="${mapY(finalVector.y)-10}" fill="#ef4444" font-size="12" font-weight="bold">Sonuç Vektörü</text>`;
+                svgHTML += `<line x1="${mapX(0)}" y1="${mapY(0)}" x2="${mapX(finalVector.x)}" y2="${mapY(finalVector.y)}" stroke="#ef4444" stroke-width="3" marker-end="url(#arrow-red)"></line>`;
+                svgHTML += `<text x="${mapX(finalVector.x) + 10}" y="${mapY(finalVector.y) - 10}" fill="#ef4444" font-size="12" font-weight="700">Sonuç Vektörü</text>`;
             }
             document.getElementById('svg-content').innerHTML = svgHTML;
 
-            // 2) Matematiksel Analiz Paneli Güncelleme
             let analysisHTML = `
-                <h3 class="text-lg font-bold text-slate-800 mb-2 border-b pb-2">Matematiksel Analiz</h3>
-                <div class="bg-blue-50 text-blue-900 p-3 rounded-md border border-blue-100">
-                    <span class="font-semibold block mb-1">Orijinal Vektör (E)</span>
-                    Koordinat: [${baseVector.x.toFixed(2)}, ${baseVector.y.toFixed(2)}]<br/>
-                    Uzunluk (Norm): <span class="font-bold">${baseNorm.toFixed(2)}</span>
+                <h3>Matematiksel Analiz</h3>
+                <div class="card blue">
+                    <strong>Orijinal Vektör (E)</strong>
+                    Koordinat: [${baseVector.x.toFixed(2)}, ${baseVector.y.toFixed(2)}]<br>
+                    Uzunluk (Norm): <b>${baseNorm.toFixed(2)}</b>
                 </div>
             `;
 
             if (currentMethod === 'absolute') {
                 analysisHTML += `
-                    <div class="bg-emerald-50 text-emerald-900 p-3 rounded-md border border-emerald-100">
-                        <span class="font-semibold block mb-1">Eklenen Pozisyon Vektörü (P)</span>
-                        Koordinat: [${posVector.x.toFixed(2)}, ${posVector.y.toFixed(2)}]<br/>
-                        <span class="text-xs italic text-emerald-700">Formül: E + P</span>
+                    <div class="card emerald">
+                        <strong>Eklenen Pozisyon Vektörü (P)</strong>
+                        Koordinat: [${posVector.x.toFixed(2)}, ${posVector.y.toFixed(2)}]<br>
+                        <small>Formül: E + P</small>
                     </div>
                 `;
             } else {
                 analysisHTML += `
-                    <div class="bg-amber-50 text-amber-900 p-3 rounded-md border border-amber-100">
-                        <span class="font-semibold block mb-1">Rotasyon İşlemi</span>
-                        Döndürme Açısı: ${rotationDeg}°<br/>
-                        <span class="text-xs italic text-amber-700">Formül: R(E, ${rotationDeg}°)</span>
+                    <div class="card amber">
+                        <strong>Rotasyon İşlemi</strong>
+                        Döndürme Açısı: ${rotationDeg}°<br>
+                        <small>Formül: R(E, ${rotationDeg}°)</small>
                     </div>
                 `;
             }
 
-            const borderClass = 'bg-red-50 text-red-900 border-red-100';
-            const highlightClass = currentMethod === 'absolute' && currentPos > 0 ? 'bg-yellow-200 px-1 rounded' : 'bg-green-200 px-1 rounded';
-            const warningMsg = currentMethod === 'absolute' 
-                ? '<span class="text-red-700 font-medium">⚠️ Uyarı: Geleneksel yöntemde pozisyon eklendikçe vektörün boyu (norm) sürekli uzar ve kelimenin orijinal şiddeti bozulur.</span>'
-                : '<span class="text-green-700 font-medium">✅ Avantaj: RoPE sadece döndürme yaptığı için vektörün uzunluğu daima sabit kalır. Şiddet bozulmaz!</span>';
+            const highlightClass = currentMethod === 'absolute' && currentPos > 0 ? 'highlight-bad' : 'highlight-good';
+            const warningMsg = currentMethod === 'absolute'
+                ? '<span style="color:#b91c1c;font-weight:700;">⚠️ Uyarı: Geleneksel yöntemde pozisyon eklendikçe vektörün boyu (norm) uzar ve kelimenin şiddeti bozulur.</span>'
+                : '<span style="color:#047857;font-weight:700;">✅ Avantaj: RoPE sadece döndürme yaptığı için vektörün uzunluğu sabit kalır.</span>';
 
             analysisHTML += `
-                <div class="p-3 rounded-md border ${borderClass}">
-                    <span class="font-semibold block mb-1">Sonuç Vektörü</span>
-                    Koordinat: [${finalVector.x.toFixed(2)}, ${finalVector.y.toFixed(2)}]<br/>
-                    Uzunluk (Norm): <span class="font-bold ${highlightClass}">${finalNorm.toFixed(2)}</span>
-                    <div class="mt-3 text-xs border-t pt-2 border-red-200/50">
-                        ${warningMsg}
-                    </div>
+                <div class="card red">
+                    <strong>Sonuç Vektörü</strong>
+                    Koordinat: [${finalVector.x.toFixed(2)}, ${finalVector.y.toFixed(2)}]<br>
+                    Uzunluk (Norm): <span class="${highlightClass}">${finalNorm.toFixed(2)}</span>
+                    <div class="note">${warningMsg}</div>
                 </div>
             `;
-            
+
             document.getElementById('analysis-content').innerHTML = analysisHTML;
         }
 
-        // Sayfa yüklenince ilk çizimi başlat
         render();
     </script>
 </body>
